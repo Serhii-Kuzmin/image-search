@@ -1,0 +1,197 @@
+/**
+  |============================
+  | reset styles
+  |============================
+*/
+
+@import url('./reset.css');
+
+img {
+  display: block;
+  width: 100%;
+}
+
+/**
+  |============================
+  | for exemple
+  |============================
+*/
+
+body {
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  background-color: #262c37;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+/**
+  |============================
+  | form styles
+  |============================
+*/
+
+.search-form {
+  padding: 20px 0;
+}
+
+.search-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.input-style {
+  border-radius: 10px;
+  padding: 15px 30px;
+}
+
+/**
+  |============================
+  | button styles
+  |============================
+*/
+.button {
+  display: inline-block;
+  overflow: hidden;
+  position: relative;
+
+  border-radius: 10px;
+
+  background: linear-gradient(to right, #dac924 0%, #009ef3 100%) left top /
+      100% 5px no-repeat,
+    linear-gradient(to right, #dac924 0%, #009ef3 100%) left bottom / 100% 5px
+      no-repeat;
+}
+
+.button::before,
+.button::after {
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 10px;
+  top: 0;
+}
+
+.button::before {
+  left: 0;
+  border-radius: 10px 0 0 10px;
+  border: 5px solid #dac924;
+  border-right: none;
+}
+
+.button::after {
+  right: 0;
+  border-radius: 0 10px 10px 0;
+  border: 5px solid #009ef3;
+  border-left: none;
+}
+
+.button span {
+  display: block;
+  padding: 15px 30px;
+
+  text-transform: uppercase;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 2px;
+
+  position: relative;
+  z-index: 2;
+}
+
+.button span::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: -1;
+
+  background: linear-gradient(to right, #dac924 0%, #009ef3 100%) 0 0 / auto
+    100% no-repeat;
+}
+
+button:hover span::before {
+  opacity: 1;
+}
+button:focus span::before {
+  opacity: 1;
+}
+/**
+  |============================
+  | elements styles
+  |============================
+*/
+
+.lightbox {
+  width: calc((100% - 40px) / 3);
+  color: #343434;
+  transition: 0.4s;
+}
+
+.lightbox:hover {
+  transform: scale(1.01);
+}
+
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.photo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 12px;
+  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1);
+  background-color: #e4f6f7;
+}
+
+.photo-card img {
+  border-radius: 12px;
+  height: 200px;
+  object-fit: cover;
+}
+
+.info {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.loader {
+  top: 50%;
+  left: 50%;
+  color: #ffffff;
+  font-size: 45px;
+  text-indent: -9999em;
+  overflow: hidden;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  position: absolute;
+  transform: translateZ(0);
+  animation: mltShdSpin 1.7s infinite ease, round 1.7s infinite ease;
+}
+
+/**
+    |============================
+    | 
+    |============================
+  */
