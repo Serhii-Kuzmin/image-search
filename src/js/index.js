@@ -3,140 +3,111 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { elements } from './components.js';
-import { BASE_URL, options } from './api';
+import { renderPhotoCard } from './galleryFunctions.js';
+import { BASE_URL, API_KEY, options } from './api.js';
 
-const { galleryEl, searchInput, searchForm, loaderEl} = elements;
+const { galleryContainer, searchInput, searchForm, loaderContainer } = elements;
 
-let totalHits = 0;
-let isLoadingMore = false;
-let reachedEnd = false;
+let totalResults = 0;
+let isFetchingMore = false;
+let hasReachedEnd = false;
 
 const lightbox = new SimpleLightbox('.lightbox', {
-    captionsData: 'alt',
-    captionDelay: 250,
-    enableKeyboard: true,
-    showCounter: false,
-    scrollZoom: false,
-    close: false,
-  });
+  captionsData: 'alt',
+  captionDelay: 250,
+  enableKeyboard: true,
+  showCounter: false,
+  scrollZoom: false,
+  close: false,
+});
 
-  searchForm.addEventListener('submit', onFormSubmit);
-  window.addEventListener('scroll', onScrollHandler);
-  document.addEventListener('DOMContentLoaded', hideLoader);
+searchForm.addEventListener('submit', onFormSubmit);
+window.addEventListener('scroll', onScrollHandler);
+document.addEventListener('DOMContentLoaded', hideLoader);
 
-  function showLoader() {
-    loaderEl.style.display = 'block';
-  };
+function showLoader() {
+  loaderContainer.style.display = 'block';
+}
 
-  function hideLoader() {
-    loaderEl.style.display = 'none';
-  };
+function hideLoader() {
+  loaderContainer.style.display = 'none';
+}
 
-  function renderGallery(hits) {
-    const markup = hits
-    .map(item => {
-        return `
-        <a href="${item.largeImageURL}" class="lightbox">
-            <div class="photo-card">
-                <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
-                <div class="info">
-                    <p class="info-item">
-                        <b>Likes</b>
-                        ${item.likes}
-                    </p>
-                    <p class="info-item">
-                        <b>Views</b>
-                        ${item.views}
-                    </p>
-                    <p class="info-item">
-                        <b>Comments</b>
-                        ${item.comments}
-                    </p>
-                    <p class="info-item">
-                        <b>Downloads</b>
-                        ${item.downloads}
-                    </p>
-                </div>
-            </div>
-        </a>
-        `;
-    })
-    .join('');
+function renderGallery(hits) {
+  const markup = hits.map(renderPhotoCard).join('');
+  galleryContainer.insertAdjacentHTML('beforeend', markup);
 
-    galleryEl.insertAdjacentHTML('beforeend', markup);
-        // mozlyvo treba vudalyty ciu perevirku 
-    if (options.params.page * options.params.per_page >= totalHits) {
-        if (!reachedEnd) {
-          Notify.info("We're sorry, but you've reached the end of search results.");
-          reachedEnd = true;
-        }
-      }
-        lightbox.refresh();
-  };
-
-  async function loadMore() {
-    isLoadingMore = true;
-    options.params.page +=1;
-
-    try {
-        showLoader();
-        const response = await axios.get(BASE_URL, options);
-        const hits = response.data.hits;
-        renderGallery(hits);
-    } catch(err) {
-        Notify.failure(err);
-        hideLoader();
-    } finally{
-        hideLoader();
-        isLoadingMore = false;
-    };
-  };
-
-  function onScrollHandler() {
-    const {scrollTop, scrollHeight, clientHeight} = document.documentElement;
-    const scrollThreshold = 300;
-
-    // pereinachyty ciu perevirku , bo tupo vygliadaje
-    if (
-        scrollTop + clientHeight >= scrollHeight - scrollThreshold &&
-        galleryEl.innerHTML !== '' &&
-        !isLoadingMore &&
-        !reachedEnd
-      ) {
-        loadMore();
-      }
-  };
-
-  async function onFormSubmit(e) {
-    e.preventDefault();
-    options.params.q = searchInput.value.trim();
-    if (options.params.q === '') {
-        return;
-    }
-    options.params.page = 1;
-    galleryEl.innerHTML = '';
-    reachedEnd = false;
-    
-    try {
-        showLoader();
-        const response = await axios.get(BASE_URL, options);
-        totalHits = response.data.totalHits;
-        const hits = response.data.hits;
-
-        if (hits.length === 0) {
-            Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-
-        } else {
-            Notify.success(`Hooray! We found ${totalHits} images.`);
-            renderGallery(hits);
-        };
-
-        searchInput.value = '';
-        hideLoader();
-    } catch (err) {
-        Notify.failure(err);
-        hideLoader();
+  if (options.params.page * options.params.per_page >= totalResults) {
+    if (hasReachedEnd) {
+      Notify.info("We're sorry, but you've reached the end of search results.");
+      hasReachedEnd = true;
     }
   }
+  lightbox.refresh();
+}
 
+async function loadMore() {
+  if (isFetchingMore) return;
 
+  isFetchingMore = true;
+  options.params.page += 1;
+
+  try {
+    showLoader();
+    const response = await axios.get(BASE_URL, options);
+    const hits = response.data.hits;
+    renderGallery(hits);
+  } catch (err) {
+    Notify.failure(err);
+  } finally {
+    hideLoader();
+    isFetchingMore = false;
+  }
+}
+
+function onScrollHandler() {
+  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+  const scrollThreshold = 300;
+
+  if (
+    scrollTop + clientHeight >= scrollHeight - scrollThreshold &&
+    galleryContainer.innerHTML !== '' &&
+    !isFetchingMore &&
+    !hasReachedEnd
+  ) {
+    loadMore();
+  }
+}
+
+async function onFormSubmit(e) {
+  e.preventDefault();
+  options.params.q = searchInput.value.trim();
+  if (options.params.q === '') {
+    return;
+  }
+  options.params.page = 1;
+  galleryContainer.innerHTML = '';
+  hasReachedEnd = false;
+
+  try {
+    showLoader();
+    const response = await axios.get(BASE_URL, options);
+    totalResults = response.data.totalResults;
+    const hits = response.data.hits;
+
+    if (hits.length === 0) {
+      Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+    } else {
+      Notify.success(`Hooray! We found ${totalResults} images.`);
+      renderGallery(hits);
+    }
+
+    searchInput.value = '';
+  } catch (err) {
+    Notify.failure(err);
+  } finally {
+    hideLoader();
+  }
+}
