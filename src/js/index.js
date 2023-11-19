@@ -58,6 +58,8 @@ async function loadMore() {
 
     renderGallery(hits);
 
+    totalResults = response.data.totalHits;
+
     const totalPages = Math.ceil(totalResults / options.params.per_page);
     if (options.params.page >= totalPages) {
       hasReachedEnd = true;
@@ -107,6 +109,7 @@ async function onFormSubmit(e) {
       Notify.failure('Sorry, there are no images matching your search query. Please try again.');
       return
     } 
+      
       Notify.success(`Hooray! We found ${totalResults} images.`);
       renderGallery(hits);
 
