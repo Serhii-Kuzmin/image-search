@@ -2,11 +2,11 @@ import axios from 'axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import { elements } from './components.js';
-import { renderPhotoCard } from './galleryFunctions.js';
-import { BASE_URL, API_KEY, options } from './api.js';
+import { refs } from './refs.js';
+import {showLoader, hideLoader, renderPhotoCard } from './galleryFunctions.js';
+import { fetchImages, BASE_URL, API_KEY, options } from './api.js';
 
-const { galleryContainer, searchInput, searchForm, loaderContainer } = elements;
+const { galleryContainer, searchInput, searchForm, loaderContainer } = refs;
 
 let totalResults = 0;
 let isFetchingMore = false;
@@ -22,16 +22,8 @@ const lightbox = new SimpleLightbox('.lightbox', {
 });
 
 searchForm.addEventListener('submit', onFormSubmit);
-window.addEventListener('scroll', onScrollHandler);
 document.addEventListener('DOMContentLoaded', hideLoader);
 
-function showLoader() {
-  loaderContainer.style.display = 'block';
-}
-
-function hideLoader() {
-  loaderContainer.style.display = 'none';
-}
 
 function renderGallery(hits) {
   const markup = hits.map(renderPhotoCard).join('');
@@ -47,7 +39,7 @@ function renderGallery(hits) {
 }
 
 async function loadMore() {
-  if (isFetchingMore) return;
+  if (isFetchingMore || hasReachedEnd) return;
 
   isFetchingMore = true;
   options.params.page += 1;
@@ -56,7 +48,22 @@ async function loadMore() {
     showLoader();
     const response = await axios.get(BASE_URL, options);
     const hits = response.data.hits;
+
+    
+    if (hits.length === 0) {
+      hasReachedEnd = true;
+      Notify.warning("We're sorry, but you've reached the end of search results.");
+      return;
+    }
+
     renderGallery(hits);
+
+    const totalPages = Math.ceil(totalResults / options.params.per_page);
+    if (options.params.page >= totalPages) {
+      hasReachedEnd = true;
+      Notify.warning("You've reached the end of search results.");
+    }
+
   } catch (err) {
     Notify.failure(err);
   } finally {
@@ -83,26 +90,33 @@ async function onFormSubmit(e) {
   e.preventDefault();
   options.params.q = searchInput.value.trim();
   if (options.params.q === '') {
-    return;
+     Notify.warning('Please enter a search query.');
+     return
   }
   options.params.page = 1;
   galleryContainer.innerHTML = '';
   hasReachedEnd = false;
 
+  
   try {
     showLoader();
-    const response = await axios.get(BASE_URL, options);
-    totalResults = response.data.totalResults;
-    const hits = response.data.hits;
-
-    if (hits.length === 0) {
-      Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-    } else {
+    const hits = await fetchImages();
+    totalResults = hits.length;
+    
+    if (totalResults === 0) {
+      Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+      return
+    } 
       Notify.success(`Hooray! We found ${totalResults} images.`);
       renderGallery(hits);
-    }
+
+      if (totalResults > 40) {
+        window.addEventListener('scroll', onScrollHandler);
+      }
+
+      renderGallery(hits);
+    
+    
 
     searchInput.value = '';
   } catch (err) {

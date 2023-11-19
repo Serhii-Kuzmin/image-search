@@ -1,3 +1,14 @@
+import { refs } from './refs.js';
+
+
+export function showLoader() {
+  refs.loaderContainer.style.display = 'block';
+}
+
+export function hideLoader() {
+  refs.loaderContainer.style.display = 'none';
+}
+
 export function renderPhotoCard(item) {
     return `
       <a href="${item.largeImageURL}" class="lightbox">
