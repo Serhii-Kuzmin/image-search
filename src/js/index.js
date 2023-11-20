@@ -103,7 +103,7 @@ async function onFormSubmit(e) {
   try {
     showLoader();
     const {hits, totalHits} = await fetchImages();
-    totalResults = hits.length;
+    // totalResults = hits.length;
     
     if (totalHits === 0) {
       Notify.failure('Sorry, there are no images matching your search query. Please try again.');
