@@ -94,11 +94,10 @@ async function onFormSubmit(e) {
     } 
       
       Notify.success(`Hooray! We found ${totalHits} images.`);
-      renderGallery(hits);
 
       if (totalHits > 40) {
         window.addEventListener('scroll', onScrollHandler);
-      }
+      } 
 
       renderGallery(hits);
     
