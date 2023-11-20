@@ -1,14 +1,14 @@
-import axios from 'axios';
+
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { refs } from './refs.js';
 import {showLoader, hideLoader, renderPhotoCard } from './galleryFunctions.js';
-import { fetchImages, BASE_URL, API_KEY, options } from './api.js';
+import { fetchImages, options } from './api.js';
 
 const { galleryContainer, searchInput, searchForm, loaderContainer } = refs;
 
-let totalResults = 0;
+
 let isFetchingMore = false;
 let hasReachedEnd = false;
 
@@ -29,12 +29,12 @@ function renderGallery(hits) {
   const markup = hits.map(renderPhotoCard).join('');
   galleryContainer.insertAdjacentHTML('beforeend', markup);
 
-  if (options.params.page * options.params.per_page >= totalResults) {
-    if (hasReachedEnd) {
-      Notify.info("We're sorry, but you've reached the end of search results.");
-      hasReachedEnd = true;
-    }
-  }
+  // if (options.params.page * options.params.per_page >= totalResults) {
+  //   if (hasReachedEnd) {
+  //     Notify.info("We're sorry, but you've reached the end of search results.");
+  //     hasReachedEnd = true;
+  //   }
+  // }
   lightbox.refresh();
 }
 
@@ -46,21 +46,21 @@ async function loadMore() {
 
   try {
     showLoader();
-    const response = await fetchImages();
-    const hits = response.data.hits;
+    const {hits, totalHits} = await fetchImages();
+    // const hits = response.data.hits;
 
     
-    if (hits.length === 0) {
-      hasReachedEnd = true;
-      Notify.warning("We're sorry, but you've reached the end of search results.");
-      return;
-    }
+    // if (hits.length === 0) {
+    //   hasReachedEnd = true;
+    //   Notify.warning("We're sorry, but you've reached the end of search results.");
+    //   return;
+    // }
 
     renderGallery(hits);
 
-    totalResults = response.data.totalHits;
+    // totalResults += hits.length;
 
-    const totalPages = Math.ceil(totalResults / options.params.per_page);
+    const totalPages = Math.ceil(totalHits / options.params.per_page);
     if (options.params.page >= totalPages) {
       hasReachedEnd = true;
       Notify.warning("You've reached the end of search results.");
@@ -102,18 +102,18 @@ async function onFormSubmit(e) {
   
   try {
     showLoader();
-    const hits = await fetchImages();
+    const {hits, totalHits} = await fetchImages();
     totalResults = hits.length;
     
-    if (totalResults === 0) {
+    if (totalHits === 0) {
       Notify.failure('Sorry, there are no images matching your search query. Please try again.');
       return
     } 
       
-      Notify.success(`Hooray! We found ${totalResults} images.`);
+      Notify.success(`Hooray! We found ${totalHits} images.`);
       renderGallery(hits);
 
-      if (totalResults > 40) {
+      if (totalHits > 40) {
         window.addEventListener('scroll', onScrollHandler);
       }
 

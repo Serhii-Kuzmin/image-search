@@ -15,10 +15,10 @@ export const options = {
   },
 }
 
-export async function fetchImages(page) {
+export async function fetchImages() {
   try {
     const response = await axios.get(BASE_URL, options);
-    return response.data.hits;
+    return response.data;
   } catch (error) {
     Notify.failure(error);
     throw error;
