@@ -15,7 +15,7 @@ export const options = {
   },
 }
 
-export async function fetchImages() {
+export async function fetchImages(page) {
   try {
     const response = await axios.get(BASE_URL, options);
     return response.data.hits;

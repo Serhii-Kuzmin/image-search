@@ -46,7 +46,7 @@ async function loadMore() {
 
   try {
     showLoader();
-    const response = await axios.get(BASE_URL, options);
+    const response = await fetchImages();
     const hits = response.data.hits;
 
     
