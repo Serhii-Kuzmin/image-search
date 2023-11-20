@@ -123,6 +123,7 @@ async function onFormSubmit(e) {
 
     searchInput.value = '';
   } catch (err) {
+    console.log(err);
     Notify.failure(err);
   } finally {
     hideLoader();
